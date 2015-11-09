@@ -6,25 +6,28 @@ var app = angular
     'ngResource',
     'ngRoute',    
     'firebase',
-    'toaster'
+    'toaster',
+    'angularMoment'
   ])
-  .constant('FURL', 'https://taskninjajoewardpr.firebaseio.com/')  
+  .constant('FURL', 'https://taskninjajoewardpr.firebaseio.com/')
+  .run(function($rootScope, $location) {
+    $rootScope.$on("$routeChangeError", function(event, next, previous, error) {
+      // We can catch the error thrown when the $requireAuth promise is rejected
+      // and redirect the user back to the login page
+      if (error === "AUTH_REQUIRED") {
+        $location.path("/login");
+      }
+    });
+  })  
   .config(function ($routeProvider) {
     $routeProvider      
       .when('/', {
-        templateUrl: 'views/main.html'
-      })
-      .when('/browse', {
         templateUrl: 'views/browse.html',
-        controller: 'TaskController'     
+        controller: 'BrowseController'     
       })
-      .when('/post', {
-        templateUrl: 'views/post.html',
-        controller: 'TaskController'
-      })
-      .when('/edit/:taskId', {
-        templateUrl: 'views/edit.html',
-        controller: 'TaskController'
+      .when('/browse/:taskId', {
+        templateUrl: 'views/browse.html',
+        controller: 'BrowseController'
       })
       .when('/register', {
         templateUrl: 'views/register.html',
@@ -33,6 +36,15 @@ var app = angular
       .when('/login', {
         templateUrl: 'views/login.html',
         controller: 'AuthController'
+      })
+      .when('/dashboard', {
+        templateUrl: 'views/dashboard.html',
+        controller: 'DashboardController',
+        resolve: {
+          currentAuth: function(Auth) {
+            return Auth.requireAuth();
+          }
+        }
       })
       .otherwise({
         redirectTo: '/'
